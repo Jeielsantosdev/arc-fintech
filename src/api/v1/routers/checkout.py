@@ -44,6 +44,25 @@ def process_checkout(
         raise HTTPException(status_code=409, detail=str(exc)) from exc
 
 
+@router.get("/estimate")
+def estimate_checkout(to: str, amount_usdc: float):
+    """
+    Estimate gas cost (in USDC) for a transfer before executing checkout.
+
+    Uses arc_devkit.core.gas.estimate_transfer() — returns gas_limit,
+    gas_price_gwei, and custo_usdc so the client can show fees upfront.
+
+    Query params:
+      - to: recipient EVM address
+      - amount_usdc: transfer amount
+    """
+    from src.infrastructure.blockchain.payment_service import PaymentService
+    try:
+        return PaymentService().estimate_gas(to=to, amount_usdc=amount_usdc)
+    except Exception as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+
 @router.get("/{invoice_id}")
 def get_checkout_status(invoice_id: str, db: Session = Depends(get_db)):
     """Get payment status for a given invoice."""
