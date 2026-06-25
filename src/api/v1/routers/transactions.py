@@ -1,6 +1,6 @@
 """Transaction history endpoints."""
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from src.api.dependencies import wallet_history_uc
@@ -32,7 +32,6 @@ def get_transaction(tx_hash: str, db: Session = Depends(get_db)):
     repo = SqlTransactionRepository(db)
     tx = repo.find_by_tx_hash(tx_hash)
     if not tx:
-        from fastapi import HTTPException
         raise HTTPException(status_code=404, detail="Transaction not found")
     return {
         "id": tx.id,
@@ -45,3 +44,22 @@ def get_transaction(tx_hash: str, db: Session = Depends(get_db)):
         "created_at": tx.created_at.isoformat(),
         "confirmed_at": tx.confirmed_at.isoformat() if tx.confirmed_at else None,
     }
+
+
+@router.get("/{tx_hash}/debug")
+def debug_transaction(tx_hash: str):
+    """
+    AI-powered diagnosis of an on-chain transaction.
+
+    Uses arc_devkit.debugger.tx_analyzer.TxAnalyzer to:
+    - Decode revert reasons (require, panic, custom errors)
+    - Estimate gas cost in USDC
+    - Generate a natural-language AI summary via DevCopilot
+
+    Useful for diagnosing failed payments, reverted splits, or payroll errors.
+    """
+    from src.infrastructure.blockchain.debugger_service import TxDebuggerService
+    try:
+        return TxDebuggerService().analyze(tx_hash)
+    except Exception as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
