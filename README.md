@@ -31,7 +31,7 @@ O **arc-devkit** encapsula toda essa complexidade e expõe uma API Python de alt
 | Camada | Tecnologia |
 |---|---|
 | Blockchain | Arc Testnet (EVM, Chain ID 5042002) |
-| Integração blockchain | **arc-devkit 0.1.0** |
+| Integração blockchain | **arc-devkit 0.4.1** |
 | Backend | Python 3.11 + FastAPI |
 | Banco de dados | PostgreSQL + SQLAlchemy |
 | Cache / Idempotência | Redis |
