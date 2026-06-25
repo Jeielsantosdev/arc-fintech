@@ -1,5 +1,5 @@
 # Arc DevKit — blockchain integration
-arc-devkit>=0.1.0
+arc-devkit>=0.4.1
 
 # Web framework
 fastapi>=0.115.0
