@@ -1,6 +1,6 @@
 """Wallet endpoints."""
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, WebSocket, WebSocketDisconnect
 from sqlalchemy.orm import Session
 
 from src.api.dependencies import wallet_balance_uc, wallet_create_uc, wallet_history_uc
@@ -50,3 +50,24 @@ def get_transactions(
     """
     uc = wallet_history_uc(db)
     return uc.execute(address=address, limit=limit, offset=offset)
+
+
+@router.websocket("/{address}/stream")
+async def monitor_stream(websocket: WebSocket, address: str):
+    """
+    WebSocket feed of real-time USDC events for an address.
+
+    Uses arc_devkit.agents.async_monitor.AsyncMonitorAgent.event_stream()
+    — each message is a JSON dict with event_type, amount_usdc, tx_hash, etc.
+
+    Connect: ws://<host>/api/v1/wallet/{address}/stream
+    """
+    from src.infrastructure.blockchain.monitor_service import AsyncMonitorService
+
+    await websocket.accept()
+    service = AsyncMonitorService()
+    try:
+        async for event in service.event_stream([address]):
+            await websocket.send_json(event)
+    except WebSocketDisconnect:
+        pass
